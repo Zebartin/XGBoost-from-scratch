@@ -28,6 +28,12 @@ XGBoostModel *createXGBoostModel(const char *type) {
         fprintf(stderr, "Invalid model type: %s\n", type);
         exit(-1);
     }
+    ret->gamma = 0;
+    ret->lambda = 0;
+    ret->epsilon = 1e-8;
+    ret->shrinkage = 0.3;
+    ret->max_depth = 2;
+    ret->n_estimator = 128;
     return ret;
 }
 void fitModel(Data *Xy, XGBoostModel *model) {
@@ -37,8 +43,6 @@ void fitModel(Data *Xy, XGBoostModel *model) {
     memset(outy, 0, sizeof(double) * Xy->n_example);
     // 防止后续计算除0
     if (model->lambda == 0) {
-        if (model->epsilon == 0)
-            model->epsilon = 1e-8;
         model->lambda = model->epsilon;
     }
     for (int i = 0; i < model->n_estimator; i++) {
@@ -50,8 +54,10 @@ void fitModel(Data *Xy, XGBoostModel *model) {
         predictTree(Xy, t, model->trees + i);
         for (int j = 0; j < Xy->n_example; j++)
             outy[j] += t[j] * model->shrinkage;
-        // for (int k = 0; k < Xy->n_example; k++) printf("%d\t%f\t%f\n", k,
-        // t[k], outy[k]); printf("\n");
+        // printTree(model->trees + i);
+        // for (int k = 0; k < 10; k++)
+        //     printf("%d\t%f\t%f\n", k, t[k], outy[k]);
+        // printf("\n");
     }
     free(outy);
     free(t);

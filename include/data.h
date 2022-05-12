@@ -12,9 +12,10 @@ typedef struct {
     int size;
 } Subset;
 
-int comp(const void *a, const void *b);
+int comp_int(const void *a, const void *b);
 
 int inSubset(int x, Subset *subset);
 Subset *initSubset(int *indices, int size);
 
+Data *readCSV(const char *file_path, const char *delimiter, int firstLineIsHeader);
 #endif

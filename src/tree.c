@@ -59,10 +59,8 @@ TreeNode *splitNode(Data *Xy, Subset *index_subset, int cur_depth,
     }
     if (best_score > before_score + tree->gamma) {
         ret->feature_id = best_feature;
-        ret->info.split_cond =
-            Xy->feature_blocks[best_feature]
-                              [best_left_indices[best_left_cnt - 1]];
-        qsort(best_left_indices, best_left_cnt, sizeof(int), comp);
+        ret->info.split_cond = Xy->X[best_left_indices[best_left_cnt - 1]][best_feature];
+        qsort(best_left_indices, best_left_cnt, sizeof(int), comp_int);
         Subset *next_subset = mallocOrDie(sizeof(Subset));
         next_subset->size = best_left_cnt;
         next_subset->indices = best_left_indices;
