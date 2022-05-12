@@ -13,8 +13,9 @@ void calGHForRegression(double *predy, Data *Xy) {
 }
 void calGHForClassification(double *predy, Data *Xy) {
     for (int i = 0; i < Xy->n_example; i++) {
-        Xy->gradient[i] = predy[i] - Xy->y[i];
-        Xy->hessian[i] = predy[i] * (1 - predy[i]);
+        double t = sigmoid(predy[i]);
+        Xy->gradient[i] = t - Xy->y[i];
+        Xy->hessian[i] = t * (1 - t);
     }
 }
 XGBoostModel *createXGBoostModel(const char *type) {
