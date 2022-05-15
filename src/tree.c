@@ -11,15 +11,15 @@
 #define isLeaf(node) ((node)->left == NULL)
 
 TreeNode *splitNode(Data *Xy, Subset *index_subset, int cur_depth,
-                    XGBoostTree *tree) {
+                    GradientPair *gpair, XGBoostTree *tree) {
     double best_score = 0, before_score, after_score;
     double G = 0, H = 0;
     int best_feature, best_left_cnt = 0;
     TreeNode *ret = mallocOrDie(sizeof(TreeNode));
     for (int i = 0; i < Xy->n_example; i++)
         if (inSubset(i, index_subset)) {
-            G += Xy->gradient[i];
-            H += Xy->hessian[i];
+            G += gpair[i].g;
+            H += gpair[i].h;
         }
     if (cur_depth == tree->max_depth) {
         ret->left = NULL;
@@ -38,8 +38,8 @@ TreeNode *splitNode(Data *Xy, Subset *index_subset, int cur_depth,
             if (!inSubset(example_index, index_subset))
                 continue;
             left_indices[left_cnt++] = example_index;
-            G_L += Xy->gradient[example_index];
-            H_L += Xy->hessian[example_index];
+            G_L += gpair[example_index].g;
+            H_L += gpair[example_index].h;
             G_R = G - G_L;
             H_R = H - H_L;
             after_score = score(G_L, H_L) + score(G_R, H_R);
@@ -57,14 +57,16 @@ TreeNode *splitNode(Data *Xy, Subset *index_subset, int cur_depth,
             }
         }
     }
-    if (best_score > before_score + tree->gamma) {
+    if (best_score > before_score + tree->gamma && best_left_cnt != 0 &&
+        best_left_cnt != index_subset->size) {
         ret->feature_id = best_feature;
-        ret->info.split_cond = Xy->X[best_left_indices[best_left_cnt - 1]][best_feature];
+        ret->info.split_cond =
+            Xy->X[best_left_indices[best_left_cnt - 1]][best_feature];
         qsort(best_left_indices, best_left_cnt, sizeof(int), comp_int);
         Subset *next_subset = mallocOrDie(sizeof(Subset));
         next_subset->size = best_left_cnt;
         next_subset->indices = best_left_indices;
-        ret->left = splitNode(Xy, next_subset, cur_depth + 1, tree);
+        ret->left = splitNode(Xy, next_subset, cur_depth + 1, gpair, tree);
 
         next_subset->size = index_subset->size - best_left_cnt;
         next_subset->indices = mallocOrDie(sizeof(int) * (next_subset->size));
@@ -75,7 +77,7 @@ TreeNode *splitNode(Data *Xy, Subset *index_subset, int cur_depth,
             }
             next_subset->indices[k++] = index_subset->indices[i];
         }
-        ret->right = splitNode(Xy, next_subset, cur_depth + 1, tree);
+        ret->right = splitNode(Xy, next_subset, cur_depth + 1, gpair, tree);
         free(next_subset->indices);
         free(next_subset);
     } else {
@@ -88,12 +90,12 @@ TreeNode *splitNode(Data *Xy, Subset *index_subset, int cur_depth,
     return ret;
 }
 
-void fitTree(Data *Xy, XGBoostTree *tree) {
+void fitTree(Data *Xy, GradientPair *gpair, XGBoostTree *tree) {
     Subset ss;
     ss.size = Xy->n_example;
     ss.indices = mallocOrDie(sizeof(int) * ss.size);
     for (int i = 0; i < ss.size; i++) ss.indices[i] = i;
-    tree->root = splitNode(Xy, &ss, 0, tree);
+    tree->root = splitNode(Xy, &ss, 0, gpair, tree);
     free(ss.indices);
     ss.indices = NULL;
 }

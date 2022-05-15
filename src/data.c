@@ -49,10 +49,9 @@ Data *readCSV(const char *file_path, const char *delimiter,
     Data *data = mallocOrDie(sizeof(Data));
     data->n_example = i;
     data->n_feature = -1;
+    data->n_group = 1;
     data->X = mallocOrDie(sizeof(double *) * i);
     data->y = mallocOrDie(sizeof(double) * i);
-    data->gradient = mallocOrDie(sizeof(double) * i);
-    data->hessian = mallocOrDie(sizeof(double) * i);
     // 逐行读取
     CsvParser *csvparser =
         CsvParser_new(file_path, delimiter, first_line_is_header);

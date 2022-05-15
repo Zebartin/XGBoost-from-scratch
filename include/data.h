@@ -2,8 +2,12 @@
 #define DATA_H_
 
 typedef struct {
-    int n_example, n_feature;
-    double **X, *y, *gradient, *hessian;
+    double g,h;
+} GradientPair;
+
+typedef struct {
+    int n_example, n_feature, n_group;
+    double **X, *y;
     int **feature_blocks;
 } Data;
 

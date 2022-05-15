@@ -18,7 +18,7 @@ typedef struct {
     double gamma, lambda;
 } XGBoostTree;
 
-void fitTree(Data *Xy, XGBoostTree *tree);
+void fitTree(Data *Xy, GradientPair *gpair, XGBoostTree *tree);
 
 void predictTree(Data *Xy, double *outy, XGBoostTree *tree);
 
