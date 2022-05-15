@@ -15,7 +15,7 @@ void calGHForClassification(double *predy, Data *Xy) {
     for (int i = 0; i < Xy->n_example; i++) {
         double t = sigmoid(predy[i]);
         Xy->gradient[i] = t - Xy->y[i];
-        Xy->hessian[i] = t * (1 - t);
+        Xy->hessian[i] = fmax(t * (1 - t), 1e-16);
     }
 }
 XGBoostModel *createXGBoostModel(const char *type) {
@@ -30,7 +30,6 @@ XGBoostModel *createXGBoostModel(const char *type) {
     }
     ret->gamma = 0;
     ret->lambda = 0;
-    ret->epsilon = 1e-8;
     ret->shrinkage = 0.3;
     ret->max_depth = 2;
     ret->n_estimator = 128;
@@ -41,10 +40,6 @@ void fitModel(Data *Xy, XGBoostModel *model) {
     double *t = mallocOrDie(sizeof(double) * Xy->n_example);
     model->trees = mallocOrDie(sizeof(XGBoostTree) * model->n_estimator);
     memset(outy, 0, sizeof(double) * Xy->n_example);
-    // 防止后续计算除0
-    if (model->lambda == 0) {
-        model->lambda = model->epsilon;
-    }
     for (int i = 0; i < model->n_estimator; i++) {
         model->calGradientAndHessian(outy, Xy);
         model->trees[i].gamma = model->gamma;

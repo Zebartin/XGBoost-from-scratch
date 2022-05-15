@@ -6,7 +6,7 @@
 typedef struct {
     int n_estimator;
     int max_depth;
-    double epsilon, shrinkage, gamma, lambda;
+    double shrinkage, gamma, lambda;
     void (*calGradientAndHessian)(double *, Data *);
     XGBoostTree *trees;
 } XGBoostModel;
