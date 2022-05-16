@@ -13,7 +13,7 @@
 TreeNode *splitNode(Data *Xy, Subset *index_subset, int cur_depth,
                     GradientPair *gpair, XGBoostTree *tree) {
     double best_score = 0, before_score, after_score;
-    double G = 0, H = 0;
+    double G = 0, H = 1e-16;
     int best_feature, best_left_cnt = 0;
     TreeNode *ret = mallocOrDie(sizeof(TreeNode));
     for (int i = 0; i < Xy->n_example; i++)
@@ -34,6 +34,8 @@ TreeNode *splitNode(Data *Xy, Subset *index_subset, int cur_depth,
         int left_cnt = 0;
         double G_L = 0, H_L = 0, G_R, H_R;
         for (int j = 0; j < Xy->n_example; j++) {
+            if (left_cnt == index_subset->size - 1)
+                break;
             int example_index = Xy->feature_blocks[i][j];
             if (!inSubset(example_index, index_subset))
                 continue;
@@ -57,8 +59,7 @@ TreeNode *splitNode(Data *Xy, Subset *index_subset, int cur_depth,
             }
         }
     }
-    if (best_score > before_score + tree->gamma && best_left_cnt != 0 &&
-        best_left_cnt != index_subset->size) {
+    if (best_score > before_score + tree->gamma) {
         ret->feature_id = best_feature;
         ret->info.split_cond =
             Xy->X[best_left_indices[best_left_cnt - 1]][best_feature];

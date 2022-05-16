@@ -53,12 +53,12 @@ XGBoostModel *createXGBoostModel(enum model_type type) {
         exit(-1);
     }
     ret->mtype = type;
+    ret->n_group = 1;
     ret->gamma = 0;
     ret->lambda = 1;
-    ret->n_group = 1;
     ret->shrinkage = 0.3;
     ret->max_depth = 2;
-    ret->n_estimator = 30;
+    ret->n_estimator = 64;
     return ret;
 }
 void fitModel(Data *Xy, XGBoostModel *model) {
@@ -89,10 +89,6 @@ void fitModel(Data *Xy, XGBoostModel *model) {
             predictTree(Xy, t, model->trees + i);
             for (int j = 0; j < Xy->n_example; j++)
                 outy[j] += t[j] * model->shrinkage;
-            // printTree(model->trees + i);
-            // for (int k = 0; k < 10; k++)
-            //     printf("%d\t%f\t%f\n", k, t[k], outy[k]);
-            // printf("\n");
         }
     } else {
         GradientPair *tmp_gpair =
@@ -111,12 +107,9 @@ void fitModel(Data *Xy, XGBoostModel *model) {
                 predictTree(Xy, t, model->trees + idx);
                 for (int k = 0; k < Xy->n_example; k++)
                     outy[k * n_group + j] += t[k] * model->shrinkage;
-                // printTree(model->trees + idx);
-                // for (int k = 0; k < 20; k++)
-                //     printf("%d\t%f\t%f\n", k, t[k], outy[k]);
-                // printf("\n");
             }
         }
+        free(tmp_gpair);
     }
     free(outy);
     free(t);
