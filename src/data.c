@@ -12,34 +12,50 @@ typedef struct {
     int index;
     double val;
 } ivpair;
+
 int comp_pair(const void *a, const void *b) {
     ivpair *pa = (ivpair *)a, *pb = (ivpair *)b;
     return pa->val - pb->val;
 }
-// from https://www.geeksforgeeks.org/binary-search/
-int inSubset(int x, Subset *subset) {
-    int l = 0, r = subset->size - 1;
-    while (l <= r) {
-        int m = l + (r - l) / 2;
 
-        // Check if x is present at mid
-        if (subset->indices[m] == x)
-            return 1;
-
-        // If x greater, ignore left half
-        if (subset->indices[m] < x)
-            l = m + 1;
-
-        // If x is smaller, ignore right half
-        else
-            r = m - 1;
+Subset *initSubset(int size, int init_val) {
+    Subset *ret = mallocOrDie(sizeof(Subset));
+    ret->size = size;
+    ret->bitset = mallocOrDie(sizeof(char) * BITNSLOTS(size));
+    if (init_val) {
+        memset(ret->bitset, -1, sizeof(char) * BITNSLOTS(size));
+        ret->cnt = size;
+    } else {
+        memset(ret->bitset, 0, sizeof(char) * BITNSLOTS(size));
+        ret->cnt = 0;
     }
-
-    // if we reach here, then element was
-    // not present
-    return 0;
+    return ret;
 }
 
+void freeSubset(Subset *subset) {
+    free(subset->bitset);
+    free(subset);
+}
+
+int inSubset(int x, Subset *subset) {
+    if (x < 0 || x >= subset->size)
+        return 0;
+    return BITTEST(subset->bitset, x);
+}
+
+void addToSubset(int x, Subset *subset) {
+    if (x < 0 || x >= subset->size)
+        return;
+    if (BITTEST(subset->bitset, x))
+        return;
+    BITSET(subset->bitset, x);
+    subset->cnt++;
+}
+
+void resetSubset(Subset *subset){
+    memset(subset->bitset, 0, sizeof(char)*BITNSLOTS(subset->size));
+    subset->cnt=0;
+}
 Data *readCSV(const char *file_path, const char *delimiter,
               int first_line_is_header) {
     FILE *fp = fopen(file_path, "r");

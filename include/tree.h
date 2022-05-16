@@ -1,5 +1,6 @@
 #ifndef TREE_H_
 #define TREE_H_
+#include <stddef.h>
 
 #include "data.h"
 
@@ -17,6 +18,8 @@ typedef struct {
     int max_depth;
     double gamma, lambda;
 } XGBoostTree;
+
+static inline int isLeaf(TreeNode *node) { return node->left == NULL; }
 
 void fitTree(Data *Xy, GradientPair *gpair, XGBoostTree *tree);
 
