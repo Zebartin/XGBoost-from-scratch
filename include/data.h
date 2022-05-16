@@ -22,4 +22,7 @@ int inSubset(int x, Subset *subset);
 Subset *initSubset(int *indices, int size);
 
 Data *readCSV(const char *file_path, const char *delimiter, int firstLineIsHeader);
+
+void printConfusionMatrix(Data *, double *);
+
 #endif

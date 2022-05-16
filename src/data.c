@@ -1,6 +1,7 @@
 #include "data.h"
 
 #include <stdio.h>
+#include <string.h>
 
 #include "csvparser.h"
 #include "utils.h"
@@ -84,4 +85,48 @@ Data *readCSV(const char *file_path, const char *delimiter,
     }
     free(t);
     return data;
+}
+
+void printConfusionMatrix(Data *Xy, double *outy) {
+    int n_group = Xy->n_group;
+    if (n_group == 1)
+        n_group = 2;
+    int **conm = mallocOrDie(sizeof(int *) * n_group);
+    for (int i = 0; i < n_group; i++) {
+        conm[i] = mallocOrDie(sizeof(int) * n_group);
+        memset(conm[i], 0, sizeof(int) * n_group);
+    }
+    int realy, predy;
+    for (int i = 0; i < Xy->n_example; i++) {
+        realy = (int)(Xy->y[i]);
+        predy = (int)outy[i];
+        conm[realy][predy]++;
+    }
+    for (int i = 0; i < n_group; i++) {
+        printf("\t%d", i);
+    }
+    printf("\trecall\n");
+    for (int i = 0; i < n_group; i++) {
+        int true_positive = conm[i][i], total = 0;
+        printf("%d", i);
+        for (int j = 0; j < n_group; j++) {
+            printf("\t%d", conm[i][j]);
+            total += conm[i][j];
+        }
+        printf("\t%.2f%%\n", true_positive * 100.0 / total);
+    }
+    printf("prec");
+    int all_true = 0;
+    for (int j = 0; j < n_group; j++) {
+        int true_positive = conm[j][j], total = 0;
+        for (int i = 0; i < n_group; i++) {
+            total += conm[i][j];
+        }
+        all_true += conm[j][j];
+        printf("\t%.2f%%", true_positive * 100.0 / total);
+    }
+    printf("\n");
+    printf("accuracy: %.2f%%\n", all_true * 100.0 / Xy->n_example);
+    for (int i = 0; i < n_group; i++) free(conm[i]);
+    free(conm);
 }
