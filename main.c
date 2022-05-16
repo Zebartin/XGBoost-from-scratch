@@ -7,7 +7,7 @@
 #include "xgb.h"
 
 int main() {
-    Data *Xy = readCSV("cate_mushrooms.csv", ",", 0);
+    Data *Xy = readCSV("example-dataset/cate_mushrooms.csv", ",", 0);
     XGBoostModel *m = createXGBoostModel(MultiClassification);
     fitModel(Xy, m);
     double *outy = mallocOrDie(sizeof(double) * Xy->n_example);
